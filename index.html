@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Live - Вхід</title>
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(to bottom, #4d8a50, #000000);
+    }
+
+    .login-container {
+      background: rgba(0, 10, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+      width: 75%;
+      max-width: 400px;
+      color: white;
+      text-align: center;
+    }
+
+    .login-container h1 {
+      margin-bottom: 18px;
+      font-size: 29px;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: left;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    input {
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    button {
+      padding: 14px;
+      background-color: #00cc66;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:hover {
+      background-color: #00aa55;
+    }
+
+    .info-text {
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.8);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Football Live</h1>
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label for="login">Логін</label>
+        <input type="text" id="login" placeholder="Введіть логін" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" placeholder="Введіть пароль" required>
+      </div>
+      <button type="submit">Вхід</button>
+    </form>
+    <p class="info-text">Після входу відкриється сторінка з плеєром і каналами.</p>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const login = encodeURIComponent(document.getElementById('login').value.trim());
+      const password = encodeURIComponent(document.getElementById('password').value.trim());
+      window.location.href = `tv.html?login=${login}&password=${password}`;
+    });
+  </script>
+</body>
+</html>
