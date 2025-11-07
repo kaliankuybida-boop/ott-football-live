@@ -89,7 +89,7 @@
 
     const isFreeAccess = login === 'Free' && password === 'Free';
     const playlistURL = isFreeAccess
-      ? 'https://m3u.ch/pl/3c8a73d8517016848a6346f2bded85dc_ab6b822f0765ff7acc189e9fe8b66329.m3u'
+      ? 'http://141.105.130.32:9087/tv/playlists/Free?token=BUHZ1Y7mAbJNe1'
       : `https://pl.footballlive.pp.ua:8443/playlist.m3u8?username=${encodeURIComponent(login||'')}&password=${encodeURIComponent(password||'')}`;
 
     let activeTile = null;
