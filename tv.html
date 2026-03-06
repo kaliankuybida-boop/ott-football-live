@@ -162,7 +162,8 @@
     } else {
       console.warn('Не передано логін або пароль у параметрах URL.');
     }
-     if ("serviceWorker" in navigator) {
+    
+    if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/sw.js")
