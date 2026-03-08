@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Генератор посилань</title>
+      <link rel="icon" type="image/x-icon" href="/icon.png">
+
+  <style>
+      html, body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+     body {
+       font-family: Arial, sans-serif; 
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       background: linear-gradient(to bottom, #4d8a50, #000000);
+    }
+    .container {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 400px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4d8a50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #3a6a3c;
+    }
+    .result {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+    a {
+      color: #4d8a50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        max-width: 70%;
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Генератор посилання</h2>
+    <input type="text" id="urlInput" placeholder="Введіть URL...">
+    <br>
+    <button onclick="generateLink()">Згенерувати</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function generateLink() {
+      const url = document.getElementById('urlInput').value;
+      try {
+        const params = new URLSearchParams(url.split('?')[1]);
+        const username = params.get('username');
+        const password = params.get('password');
+
+        if (username && password) {
+          const newUrl = `https://footballlive.pp.ua/tv?login=${username}&password=${password}`;
+          document.getElementById('result').innerHTML = 
+            `Згенероване посилання: <a href="${newUrl}" target="_blank">${newUrl}</a>`;
+        } else {
+          document.getElementById('result').innerHTML = 
+            "❌ У введеному URL не знайдено параметри username та password.";
+        }
+      } catch (e) {
+        document.getElementById('result').innerHTML = 
+          "❌ Невірний формат URL.";
+      }
+    }
+  </script>
+</body>
+</html>
