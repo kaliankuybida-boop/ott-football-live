@@ -1,6 +1,6 @@
 {
-  "name": "Betking Live",
-  "short_name": "Betking Live",
+  "name": "betking live",
+  "short_name": "betking live",
   "display": "standalone",
   "scope": "/",
   "background_color": "#111111",
