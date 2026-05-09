@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Профіль</title>
+  <link rel="icon" href="/icon.png" type="image/png">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #111;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top:32px;
+    }
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 20px;
+    }
+    .text-block {
+      display: flex;
+      flex-direction: column;
+    }
+    .greeting {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .status {
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .btn-div {
+      background-color: #1C1C1C;
+      color: #ffffff;
+      text-align: center;
+      margin-left:7%;
+      margin-right: 7%;
+      margin-top: 30px;
+      padding-top: 16px;
+      padding-bottom: 16px;
+      border-radius: 16px;
+    }
+    hr{
+        margin-top:14px;
+        margin-bottom:14px;
+        border: none;
+        height: 4px;
+        background-color: #111;
+    }
+    a {
+      color: white;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-panel {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(20, 20, 20, 0.6);
+      border: 0.8px solid #666;
+      border-radius: 40px;
+      padding: 11px;
+      backdrop-filter: blur(8px);
+      max-width: 400px;
+      width: 84%;
+      z-index: 9999;
+    }
+    .panel-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: #eee;
+      font-size: 14px;
+      transition: transform 0.2s ease, color 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .panel-button img {
+      width: 30px;
+      height: 30px;
+      margin-bottom: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img id="profile" class="profile-img" hidden>
+    <div class="text-block">
+      <div id="greeting" class="greeting"></div>
+      <div id="status" class="status"></div>
+    </div>
+  </div>
+
+  <div class="btn-div">
+    <spain><a href="/faq">FAQ</a></spain>
+    <hr />
+    <spain><a href="https://t.me/football_live_anonsy">Анонси</a></spain>
+    <hr />
+    <spain><a href="https://t.me/football_live20">Купити підписку</a></spain>
+  </div>
+  
+  <div class="glass-panel">
+    <a href="javascript:void(0)" onclick="goHome()" class="panel-button">
+      <img src="/home.svg" alt="Home">
+      <span>Головна</span>
+    </a>
+    <a href="javascript:void(0)" onclick="goTV()" class="panel-button">
+      <img src="/tv.svg" alt="TV">
+      <span>Канали</span>
+    </a>
+    <a href="javascript:void(0)" onclick="goProfile()" class="panel-button">
+      <img src="/profile.svg" alt="Profile">
+      <span>Профіль</span>
+    </a>
+  </div>
+
+  <script>
+    function goHome() {
+      window.location.href = `/home.html?login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`;
+    }
+    function goTV() {
+      window.location.href = `/tv.html?login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`;
+    }
+    function goProfile() {
+      window.location.href = `/profile.html?login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`;
+    }
+      
+    const min = 1;
+    const max = 18;
+    const images = [];
+    for (let i = min; i <= max; i++) {
+      images.push(`/profile/${i}.png`);
+    }
+    const lastImage = localStorage.getItem("lastImage");
+    let currentImage;
+    do {
+      const randomIndex = Math.floor(Math.random() * images.length);
+      currentImage = images[randomIndex];
+    } while (currentImage === lastImage && images.length > 1);
+    const profileImg = document.getElementById("profile");
+    profileImg.src = currentImage;
+    profileImg.hidden = false;
+    localStorage.setItem("lastImage", currentImage);
+
+    const hour = new Date().getHours();
+    let greetingText;
+    if (hour < 5) greetingText = "Доброї ночі!";
+    else if (hour < 12) greetingText = "Доброго ранку!";
+    else if (hour < 17) greetingText = "Доброго дня!";
+    else greetingText = "Доброго вечора!";
+    document.getElementById("greeting").textContent = greetingText;
+
+    const params = new URLSearchParams(window.location.search);
+    const login = params.get("login");
+    const password = params.get("password");
+
+    if (login && password) {
+      if (login === "Free" && password === "Free") {
+        document.getElementById("status").textContent = "Статус: Безкоштовна підписка";
+        const link = document.querySelector("link[rel~='icon']") || document.createElement("link");
+        link.rel = "icon";
+        link.href = "/betking-icon.png";
+        document.head.appendChild(link);
+      } else {
+        const url = `https://s-footballive.pp.ua:8000/playlist.m3u8?username=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`;
+        fetch(url, { method: "HEAD" })
+          .then(response => {
+            let statusText;
+            if (response.status === 200) statusText = "Статус: Активна підписка";
+            else if (response.status === 404) statusText = "Статус: Технічні неполадки";
+            else statusText = `Статус: Невідомий (${response.status})`;
+            document.getElementById("status").textContent = statusText;
+          })
+          .catch(() => {
+            document.getElementById("status").textContent = "Статус: Підписка не активна";
+          });
+      }
+    } else {
+      document.getElementById("status").textContent = "Статус: Невідомий";
+    }
+  </script>
+</body>
+</html>

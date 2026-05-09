@@ -1,0 +1,25 @@
+{
+  "name": "Betking Live",
+  "short_name": "Betking Live",
+  "display": "standalone",
+  "scope": "/",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "icons": [
+     {
+      "src": "betking-live.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "betking-live-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+
+
+
+
+

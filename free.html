@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirect</title>
+  <script>
+    function isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    }
+
+    if (isMobileDevice()) {
+      window.location.href = "/tv?login=Free&password=Free";
+    } else {
+      window.location.href = "/tv?login=Free&password=Free";
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
