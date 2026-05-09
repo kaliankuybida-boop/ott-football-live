@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+<meta charset="utf-8" />
+<title>Football Live – TV</title>
+<meta name="description" content="Трансляції матчів онлайн, всі топові події тут!" />
+<link id="siteIcon" rel="icon" type="image/x-icon" href="/icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link id="appManifest" rel="manifest" href="/manifest.json">
+
+<style>
+body { margin:0; background:#111; color:#eee; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+:root { --logo-width:14%; --logo-top:2.8%; --logo-right:5.2%; }
+
+.container { max-width:900px; margin:0 auto; margin-top: 28px; padding:16px; margin-bottom: 79px;}
+
+#player { width:100%; aspect-ratio:16/9; position:relative; overflow:hidden; border-radius:8px; background:#000; }
+#player iframe, #player video { width:100%!important; height:100%!important; }
+
+#playerLogo { position:absolute; top:var(--logo-top); right:var(--logo-right); width:var(--logo-width); z-index:9999999; pointer-events:none; }
+#playerQR { position:absolute; width:8%; right:0; bottom:0; z-index:9999999; pointer-events:none; }
+
+#playerPlaceholder { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+
+.channels{margin-top:24px; -webkit-tap-highlight-color: transparent;}
+.channels-title{font-weight:500; font-size: 19.9px; margin-bottom:12px;text-align:center;}
+
+.tab{cursor:pointer;padding:4px 8px; -webkit-tap-highlight-color: transparent;}
+.active-tab { color:#ffffff; }
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+
+.tile{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.06);cursor:pointer;transition:background .15s ease,border .15s ease;border:1.8px solid transparent;}
+.tile img{width:44px;height:44px;object-fit:contain}
+.ch-name{font-weight:600;}
+.epg{font-size:12px;opacity:0.8;margin-top:2px;}
+
+.active-normal { border-color:#00ff6a; background:rgba(0,255,106,0.15); }
+.active-free { border-color:#ffffff; }
+
+#epgFull{display:none;margin-top:16px;font-size:14px;}
+.epg-item{padding:7.4px 10.4px 7.4px 10.4px;margin-bottom:6.8px;background:rgba(255,255,255,0.05);border-radius:6px;}
+
+@media (max-width: 900px) and (orientation: landscape) {
+#playerLogo.fullscreen-mobile { top: var(--logo-top); right: calc(var(--logo-right) + 6.8%); width: calc(var(--logo-width) - 2%); }
+#playerQR.fullscreen-mobile { bottom: 0%; right: 8%; width: 7%; }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+#playerLogo.fullscreen-mobile { top: calc(var(--logo-top) + 34.74%); right: calc(var(--logo-right) - 0.01%); width: calc(var(--logo-width) - 0.1%); }
+#playerQR.fullscreen-mobile { right: 0%; bottom: 36.7%; width: 7%; }
+}
+
+.glass-panel {
+  position: fixed;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(20, 20, 20, 0.6);
+  border: 0.8px solid #666;
+  border-radius: 40px;
+  padding: 11px;
+  backdrop-filter: blur(8px);
+  max-width: 400px;
+  width: 84%;
+  z-index: 9999;
+}
+
+.panel-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #eee;
+  font-size: 14px;
+  transition: transform 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.panel-button img {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 1px;
+}
+
+</style>
+</head>
+
+<body>
+<div class="container">
+<div id="player">
+<img id="playerPlaceholder" style="display:none;">
+</div>
+
+<div class="channels">
+<h2 class="channels-title">
+<span id="tabChannels" class="tab active-tab">Канали</span> | <span id="tabEPG" class="tab">Програма</span>
+</h2>
+<div id="channelsGrid" class="grid"></div>
+<div id="epgFull"></div>
+</div>
+</div>
+
+<div class="glass-panel">
+  <a href="javascript:void(0)" onclick="goHome()" class="panel-button" href="#">
+    <img src="/home.svg" alt="Home">
+    <span>Головна</span>
+  </a>
+  <a href="javascript:void(0)" onclick="goTV()" class="panel-button" href="#">
+    <img src="/tv.svg" alt="TV">
+    <span>Канали</span>
+  </a>
+  <a href="javascript:void(0)" onclick="goProfile()" class="panel-button" href="#">
+    <img src="/profile.svg" alt="Profile">
+    <span>Профіль</span>
+  </a>
+</div>
+
+<script src="playerjs.js"></script>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const login = params.get('login');
+const password = params.get('password');
+const channelParam = parseInt(params.get('channel'), 10);
+const isFreeAccess = login === 'Free' && password === 'Free';
+
+function goHome() {
+  window.location.href = `/home.html?login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`;
+}
+
+function goTV() {
+  window.location.href = `/tv.html?login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`;
+}
+
+function goProfile() {
+  window.location.href = `/profile.html?login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`;
+}
+
+document.getElementById('appManifest').href = isFreeAccess ? '/manifest-betking.json' : '/manifest.json';
+
+if(isFreeAccess){
+  document.title = "Betking Live – TV";
+  document.getElementById("siteIcon").href = "/betking-icon.png";
+    
+  const style = document.createElement('style');
+  style.textContent = `.active-tab { color:#ff2a2a; }`;
+  document.head.appendChild(style);
+} else {
+  const style = document.createElement('style');
+  style.textContent = `.active-tab { color:#00ff6a; }`;
+  document.head.appendChild(style);
+}
+
+const playlistURL = isFreeAccess
+? 'https://s-footballive.pp.ua/tv/playlists/Free1?token=FSV88A1xlzfim1'
+: `https://s-footballive.pp.ua:8000/playlist.m3u8?username=${encodeURIComponent(login||'')}&password=${encodeURIComponent(password||'')}`;
+
+const placeholderImg = document.getElementById('playerPlaceholder');
+placeholderImg.onload = () => placeholderImg.style.display = 'block';
+placeholderImg.src = isFreeAccess ? "images/free-player.jpg" : "images/player.jpg";
+
+let activeTile=null, player, placeholder, logo, qr;
+let currentEPGIndex=null;
+let channelSettings={};
+
+async function loadChannelSettings(){
+  try{
+    const settingsFile = isFreeAccess ? 'https://raw.githubusercontent.com/footballlive-server/files/refs/heads/main/channel-conf/free-channels.json' : '/channels.json';
+    const res=await fetch(settingsFile);
+    const data=await res.json();
+    channelSettings={};
+    data.forEach(ch=>{
+      channelSettings[ch.id]={logo:ch.logo,qr:ch["qr-code"],Top:ch.Top,Right:ch.Right,Width:ch.Width};
+    });
+  }catch(e){
+    console.error("Не вдалося завантажити налаштування каналів",e);
+  }
+}
+
+function parseDate(str){
+  const [date,time]=str.split(' ');
+  const [d,m,y]=date.split('-').map(Number);
+  const [h,min]=time.split(':').map(Number);
+  return new Date(y,m-1,d,h,min);
+}
+
+function renderFullEPG(text){
+  const clean=text.replace(/\r/g,'').trim();
+  const blocks=[...clean.matchAll(/([^\n]+)\n\{([^}]+)\}/g)];
+  epgFull.innerHTML='';
+  const schedule = {};
+  const now = new Date();
+  const today = now.toDateString();
+
+  for(const b of blocks){
+    const title=b[1].trim();
+    const times=b[2].replace(/\n/g,' ').trim().split(/\s+/);
+    if(times.length >= 4){
+      const start = parseDate(times[0] + ' ' + times[1]);
+      const end   = parseDate(times[2] + ' ' + times[3]);
+      if(start.toDateString() === today || end.toDateString() === today){
+        const startHour = start.getHours();
+        schedule[startHour] = { start: times[1], end: times[3], title: title };
+      }
+    }
+  }
+
+  const hasEPG = /EPG\s*=\s*YES/i.test(clean);
+  const hasScheduleToday = Object.keys(schedule).length > 0;
+
+  for(let h=0; h<24; h++){
+    const div=document.createElement('div');
+    div.className='epg-item';
+    if(schedule[h]){
+      div.innerHTML = `${schedule[h].start} - ${schedule[h].end}<br>${schedule[h].title}`;
+    }else{
+      if(hasScheduleToday){
+        div.innerHTML = `${h.toString().padStart(2,'0')}:00 - ${(h+1).toString().padStart(2,'0')}:00<br>Очікуйте трансляцію...`;
+      } else {
+        div.innerHTML = `${h.toString().padStart(2,'0')}:00 - ${(h+1).toString().padStart(2,'0')}:00<br>${hasEPG ? "Очікуйте трансляцію..." : "Немає даних"}`;
+      }
+    }
+    epgFull.appendChild(div);
+  }
+}
+
+function parseEPG(text){
+  const clean=text.replace(/\r/g,'').trim();
+  
+  if (!clean || /EPG\s*=\s*NO/i.test(clean)) {
+    return "Немає даних";
+  }
+  
+  const blocks=[...clean.matchAll(/([^\n]+)\n\{([^}]+)\}/g)];
+  const now = new Date();
+
+  for(const b of blocks){
+    const title=b[1].trim();
+    const times=b[2].replace(/\n/g,' ').trim().split(/\s+/);
+    if(times.length >= 4){
+      const start = parseDate(times[0] + ' ' + times[1]);
+      const end   = parseDate(times[2] + ' ' + times[3]);
+      if(now >= start && now < end){
+        return `${times[1]} - ${times[3]} ${title}`;
+      }
+    }
+  }
+  return "Очікуйте трансляцію...";
+}
+
+function createOverlays(){
+  const container=document.getElementById('player');
+  if(!logo){ 
+    logo=document.createElement('img'); 
+    logo.id='playerLogo'; 
+    logo.src='/images/default.png'; 
+    container.appendChild(logo); 
+  }
+  if(!qr){ 
+    qr=document.createElement('img'); 
+    qr.id='playerQR'; 
+    qr.src='/qr-code.gif'; 
+    container.appendChild(qr); 
+  }
+  placeholder=document.getElementById('playerPlaceholder');
+}
+
+function handleFullscreen(){
+  const fs=document.fullscreenElement;
+  if(fs){
+    if(logo){ 
+      fs.appendChild(logo); 
+      logo.style.position='fixed'; 
+      if(window.innerWidth<=900) logo.classList.add('fullscreen-mobile'); 
+    }
+    if(qr){ 
+      fs.appendChild(qr); 
+      qr.style.position='fixed'; 
+      if(window.innerWidth<=900) qr.classList.add('fullscreen-mobile'); 
+    }
+  }else{
+    const container=document.getElementById('player');
+    if(logo){ 
+      container.appendChild(logo); 
+      logo.style.position='absolute'; 
+      logo.classList.remove('fullscreen-mobile'); 
+    }
+    if(qr){ 
+      container.appendChild(qr); 
+      qr.style.position='absolute'; 
+      qr.classList.remove('fullscreen-mobile'); 
+    }
+  }
+}
+document.addEventListener('fullscreenchange',handleFullscreen);
+document.addEventListener('webkitfullscreenchange',handleFullscreen);
+
+function parseM3U(text){
+  const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const items=[]; 
+  let current=null;
+
+  for(const line of lines){
+    if(line.startsWith('#EXTINF')){
+      const name=line.match(/,(.*)$/)?.[1]||'Канал';
+      const attrs={}; 
+      const attrMatches=[...line.matchAll(/([a-zA-Z0-9_-]+)="([^"]*)"/g)];
+      for(const m of attrMatches) attrs[m[1]]=m[2];
+      current={name,attrs,url:null};
+    }else if(!line.startsWith('#')){
+      if(current){ 
+        current.url=line; 
+        items.push(current); 
+        current=null; 
+      }
+    }
+  }
+  return items;
+}
+
+async function loadEPG(index){
+  const epgPath = isFreeAccess ? `https://raw.githubusercontent.com/footballlive-server/files/refs/heads/main/epg/free-${index+1}.txt` : `https://raw.githubusercontent.com/footballlive-server/files/refs/heads/main/epg/${index+1}.txt`;
+  try{
+    const res = await fetch(epgPath);
+    if(!res.ok) return "Немає даних";
+    const text = await res.text();
+    return parseEPG(text);
+  }catch{
+    return "Немає даних";
+  }
+}
+
+function formatChannelName(name){
+  if(isFreeAccess){
+    return name.replace(/_/g,' ').toLowerCase();
+  }
+  return name.replace(/_/g,' ').split(' ').map(word=>{
+    if(/^(HD|UHD|TV)$/i.test(word)) return word.toUpperCase();
+    return word.charAt(0).toUpperCase()+word.slice(1).toLowerCase();
+  }).join(' ');
+}
+
+async function loadChannels(){
+  const res=await fetch(playlistURL);
+  const text=await res.text();
+  const channels=parseM3U(text);
+  const grid=document.getElementById('channelsGrid');
+  grid.innerHTML='';
+
+  for(let index=0; index<channels.length; index++){
+    const ch = channels[index];
+    const tile=document.createElement('div');
+    tile.className='tile';
+    if(isFreeAccess) tile.classList.add('free');
+
+    const logoPath = isFreeAccess ? `/images/free-${index+1}.png` : `/images/${index+1}.png`;
+    const formattedName=formatChannelName(ch.name);
+
+    tile.innerHTML=`
+      <img src="${logoPath}" onerror="this.src='/images/default.png'">
+      <div>
+        <div class="ch-name">${formattedName}</div>
+        <div class="epg"></div>
+      </div>
+    `;
+
+    tile.addEventListener('click',()=>playChannel(ch.url,tile,index));
+    grid.appendChild(tile);
+if(channelParam && channelParam === index+1){
+  setTimeout(() => {
+    tile.dispatchEvent(new Event('click'));
+  }, 100); 
+}
+
+    loadEPG(index).then(epg=>{
+      tile.querySelector('.epg').textContent = epg;
+    });
+  }
+}
+
+function playChannel(url, tile, index){
+  if(activeTile){
+    activeTile.classList.remove('active-normal','active-free');
+  }
+  activeTile = tile;
+  activeTile.classList.add(isFreeAccess ? 'active-free' : 'active-normal');
+
+  currentEPGIndex = index;
+  if(placeholder) placeholder.style.display='none';
+
+  const isAutoStart = (channelParam && channelParam === index+1);
+
+  if(!player){
+    if(isAutoStart){
+      player = new Playerjs({id:"player", file:url, autoplay:1, mute:1});
+      createOverlays();
+      player.api("play");
+
+      document.addEventListener("fullscreenchange", () => {
+        if(document.fullscreenElement){
+          player.api("unmute");
+          player.api("play");
+        }
+      });
+    }else{
+      player = new Playerjs({id:"player", file:url, autoplay:1});
+      createOverlays();
+      player.api("play");
+    }
+  }else{
+    player.api("file", url);
+    player.api("play");
+
+    if(isAutoStart){
+      document.addEventListener("fullscreenchange", () => {
+        if(document.fullscreenElement){
+          player.api("unmute");
+          player.api("play");
+        }
+      });
+    }
+  }
+
+  if(!logo) createOverlays();
+  logo.src = isFreeAccess ? `/images/free-live-${index+1}.png` : `/images/${index+1}.png`;
+
+  const settings = channelSettings[index+1];
+  if(settings){
+    logo.style.display = (settings.logo === "on") ? "block" : "none";
+    qr.style.display   = (settings.qr === "on") ? "block" : "none";
+    document.documentElement.style.setProperty('--logo-top', settings.Top);
+    document.documentElement.style.setProperty('--logo-right', settings.Right);
+    document.documentElement.style.setProperty('--logo-width', settings.Width);
+  }
+}
+
+const tabChannels = document.getElementById('tabChannels');
+const tabEPG = document.getElementById('tabEPG');
+const channelsGrid = document.getElementById('channelsGrid');
+const epgFull = document.getElementById('epgFull');
+
+tabChannels.addEventListener('click', () => {
+  tabChannels.classList.add('active-tab');
+  tabEPG.classList.remove('active-tab');
+  channelsGrid.style.display = 'grid';
+  epgFull.style.display = 'none';
+});
+
+tabEPG.addEventListener('click', () => {
+  tabEPG.classList.add('active-tab');
+  tabChannels.classList.remove('active-tab');
+  channelsGrid.style.display = 'none';
+  epgFull.style.display = 'block';
+  if(currentEPGIndex !== null){
+    const epgPath = isFreeAccess ? `https://raw.githubusercontent.com/footballlive-server/files/refs/heads/main/epg/free-${currentEPGIndex+1}.txt` : `https://raw.githubusercontent.com/footballlive-server/files/refs/heads/main/epg/${currentEPGIndex+1}.txt`;
+    fetch(epgPath)
+      .then(res => res.text())
+      .then(text => renderFullEPG(text))
+      .catch(() => { epgFull.textContent = "Немає даних"; });
+  } else {
+    epgFull.innerHTML = "<div style='text-align:center;margin-top:20px;font-size:15px;'>Оберіть канал</div>";
+  }
+});
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register(isFreeAccess ? "/sw-betking.js" : "/sw.js");
+  });
+}
+
+if(login && password){
+  loadChannelSettings().then(loadChannels);
+}
+
+
+</script>
+</body>
+</html>
