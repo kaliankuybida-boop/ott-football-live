@@ -235,6 +235,7 @@ function parseEPG(text){
   
   const blocks=[...clean.matchAll(/([^\n]+)\n\{([^}]+)\}/g)];
   const now = new Date();
+  let found = null;
 
   for(const b of blocks){
     const title=b[1].trim();
@@ -243,11 +244,13 @@ function parseEPG(text){
       const start = parseDate(times[0] + ' ' + times[1]);
       const end   = parseDate(times[2] + ' ' + times[3]);
       if(now >= start && now < end){
-        return `${times[1]} - ${times[3]} ${title}`;
+        found = `${times[1]} - ${times[3]} ${title}`;
+        break;
       }
     }
   }
-  return "Очікуйте трансляцію...";
+
+  return found || "Немає даних";
 }
 
 function createOverlays(){
