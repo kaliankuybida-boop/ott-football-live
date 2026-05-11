@@ -205,19 +205,17 @@ function renderFullEPG(text){
   for(const b of blocks){
     const title=b[1].trim();
     const times=b[2].replace(/\n/g,' ').trim().split(/\s+/);
-    if(times.length >= 4){
+    if(times.length >= 2){
       const start = parseDate(times[0] + ' ' + times[1]);
-      const end   = parseDate(times[2] + ' ' + times[3]);
-      if(start.toDateString() === today || end.toDateString() === today){
+      if(start.toDateString() === today){
         const div=document.createElement('div');
         div.className='epg-item';
-        div.innerHTML = `${times[1]} - ${times[3]}<br>${title}`;
+        div.innerHTML = `${times[1]}<br>${title}`; // тільки початок
         epgFull.appendChild(div);
       }
     }
   }
 
-  // Якщо після фільтрації нічого не залишилось
   if(epgFull.innerHTML.trim() === ''){
     const div=document.createElement('div');
     div.className='epg-item';
