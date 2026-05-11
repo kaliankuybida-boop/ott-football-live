@@ -233,22 +233,19 @@ function parseEPG(text){
   
   const blocks=[...clean.matchAll(/([^\n]+)\n\{([^}]+)\}/g)];
   const now = new Date();
-  let found = null;
 
   for(const b of blocks){
     const title=b[1].trim();
     const times=b[2].replace(/\n/g,' ').trim().split(/\s+/);
-    if(times.length >= 4){
+    if(times.length >= 2){
       const start = parseDate(times[0] + ' ' + times[1]);
-      const end   = parseDate(times[2] + ' ' + times[3]);
-      if(now >= start && now < end){
-        found = `${times[1]} - ${times[3]} ${title}`;
-        break;
+      const end   = times.length >= 4 ? parseDate(times[2] + ' ' + times[3]) : null;
+      if(end ? (now >= start && now < end) : (now >= start)){
+        return `${times[1]} ${title}`; // тільки початок
       }
     }
   }
-
-  return found || "Немає даних";
+  return "Немає даних";
 }
 
 function createOverlays(){
