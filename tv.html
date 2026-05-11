@@ -191,9 +191,16 @@ function renderFullEPG(text){
   const clean=text.replace(/\r/g,'').trim();
   const blocks=[...clean.matchAll(/([^\n]+)\n\{([^}]+)\}/g)];
   epgFull.innerHTML='';
-  const schedule = {};
   const now = new Date();
   const today = now.toDateString();
+
+  if(blocks.length === 0 || /EPG\s*=\s*NO/i.test(clean)){
+    const div=document.createElement('div');
+    div.className='epg-item';
+    div.innerHTML = "Немає даних";
+    epgFull.appendChild(div);
+    return;
+  }
 
   for(const b of blocks){
     const title=b[1].trim();
@@ -202,27 +209,19 @@ function renderFullEPG(text){
       const start = parseDate(times[0] + ' ' + times[1]);
       const end   = parseDate(times[2] + ' ' + times[3]);
       if(start.toDateString() === today || end.toDateString() === today){
-        const startHour = start.getHours();
-        schedule[startHour] = { start: times[1], end: times[3], title: title };
+        const div=document.createElement('div');
+        div.className='epg-item';
+        div.innerHTML = `${times[1]} - ${times[3]}<br>${title}`;
+        epgFull.appendChild(div);
       }
     }
   }
 
-  const hasEPG = /EPG\s*=\s*YES/i.test(clean);
-  const hasScheduleToday = Object.keys(schedule).length > 0;
-
-  for(let h=0; h<24; h++){
+  // Якщо після фільтрації нічого не залишилось
+  if(epgFull.innerHTML.trim() === ''){
     const div=document.createElement('div');
     div.className='epg-item';
-    if(schedule[h]){
-      div.innerHTML = `${schedule[h].start} - ${schedule[h].end}<br>${schedule[h].title}`;
-    }else{
-      if(hasScheduleToday){
-        div.innerHTML = `${h.toString().padStart(2,'0')}:00 - ${(h+1).toString().padStart(2,'0')}:00<br>Очікуйте трансляцію...`;
-      } else {
-        div.innerHTML = `${h.toString().padStart(2,'0')}:00 - ${(h+1).toString().padStart(2,'0')}:00<br>${hasEPG ? "Очікуйте трансляцію..." : "Немає даних"}`;
-      }
-    }
+    div.innerHTML = "Немає даних";
     epgFull.appendChild(div);
   }
 }
