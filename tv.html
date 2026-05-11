@@ -210,7 +210,8 @@ function renderFullEPG(text){
       if(start.toDateString() === today){
         const div=document.createElement('div');
         div.className='epg-item';
-        div.innerHTML = `${times[1]}<br>${title}`; // тільки початок
+        // тепер формат: "HH:MM Назва"
+        div.innerHTML = `${times[1]} ${title}`;
         epgFull.appendChild(div);
       }
     }
