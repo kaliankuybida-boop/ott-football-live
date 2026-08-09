@@ -333,7 +333,8 @@ async function loadEPG(index){
 
 function formatChannelName(name){
   if(isFreeAccess){
-    return name.replace(/_/g,' ').toLowerCase();
+    // просто замінюємо "_" на пробіли, без зниження регістру
+    return name.replace(/_/g,' ');
   }
   return name.replace(/_/g,' ').split(' ').map(word=>{
     if(/^(HD|UHD|TV)$/i.test(word)) return word.toUpperCase();
